@@ -66,11 +66,38 @@ class ShopifyService
 
         $resp = Http::withHeaders([
             'X-Shopify-Access-Token' => $accessToken,
+            'Content-Type' => 'application/json',
         ])->post($url, [
             'query' => $query,
             'variables' => $variables,
         ]);
 
         return $resp->json();
+    }
+
+    /**
+     * Register a REST webhook on a shop.
+     * $shop - shop domain (e.g. some-shop.myshopify.com)
+     * $accessToken - shop access token
+     * $topic - e.g. 'products/create'
+     * $address - publicly accessible HTTPS URL where Shopify will POST (e.g., https://example.com/api/webhooks/products)
+     */
+    public function registerWebhook(string $shop, string $accessToken, string $topic, string $address): array
+    {
+        $url = "https://{$shop}/admin/api/{$this->apiVersion}/webhooks.json";
+
+        $response = Http::withHeaders([
+            'X-Shopify-Access-Token' => $accessToken,
+            'Content-Type' => 'application/json',
+        ])->post($url, [
+            'webhook' => [
+                'topic' => $topic,
+                'address' => $address,
+                'format' => 'json',
+            ],
+        ]);
+
+        // Return raw json payload so caller can inspect result
+        return $response->json();
     }
 }

@@ -33,7 +33,7 @@ class ShopifyAuthController extends Controller
         Cache::put('shopify_oauth_state:' . $state, $shop, now()->addMinutes(10));
 
         $scopes = config('services.shopify.scopes') ?: env('SHOPIFY_SCOPES');
-//        $redirectUri = 'https://premilitary-kristie-bioecologic.ngrok-free.dev/shopify/callback';
+
         $redirectUri = route('shopify.callback');
 
         //was causing issue in local production since the url generated was not in https. look into this further
@@ -97,6 +97,18 @@ class ShopifyAuthController extends Controller
             ]
         );
 
+        try {
+            $appUrl = config('app.url') ?: env('APP_URL');
+
+            $webhookAddress = rtrim($appUrl, '/') . '/api/shopify/webhooks/products';
+//            $a=$this->shopify->registerWebhook($shop, $tokenResponse['access_token'], 'products/create', $webhookAddress);
+            $b=$this->shopify->registerWebhook($shop, $tokenResponse['access_token'], 'products/update', $webhookAddress);
+//            $c=$this->shopify->registerWebhook($shop, $tokenResponse['access_token'], 'products/delete', $webhookAddress);
+            dd($b);
+        } catch (\Throwable $e) {
+            dd($e);
+            Log::warning('Failed to register webhooks for shop ' . $shop, ['error' => $e->getMessage()]);
+        }
         // Redirect merchant into embedded app with shop param
 
         $appUrl = route('app') . '?shop=' . urlencode($shop) . '&host=' . urlencode($host);

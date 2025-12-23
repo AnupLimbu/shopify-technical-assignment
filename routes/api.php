@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Api\DashboardController;
+use App\Http\Controllers\API\ProductController;
+use App\Http\Controllers\API\SyncController;
+use App\Http\Controllers\ShopifyWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,7 +17,12 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+$version=1;
+Route::get('/dashboard-summary', [DashboardController::class, 'summary']);
+Route::get('/products', [ProductController::class, 'index']);
+Route::post('/sync', [SyncController::class, 'sync']);
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+
+
+
+Route::post('shopify/webhooks/products', [ShopifyWebhookController::class, 'products'])->name('shopify.webhooks.products');

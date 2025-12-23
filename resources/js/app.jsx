@@ -1,43 +1,84 @@
-import React from 'react';
+import React, { useEffect, useContext } from 'react';
 import ReactDOM from 'react-dom/client';
-import createApp from "@shopify/app-bridge";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AppProvider } from '@shopify/polaris';
+import enTranslations from '@shopify/polaris/locales/en.json';
+import '@shopify/polaris/build/esm/styles.css';
+import Navbar from './components/Navbar.jsx';
+import Dashboard from './pages/Dashboard';
+import Products from './pages/Products';
+import ShopContextProvider, { ShopContext } from './context/ShopContextProvider.jsx';
 import {Redirect} from "@shopify/app-bridge/actions";
-import {AppProvider, Card, Page, TextContainer} from "@shopify/polaris";
+
+// RedirectTo component - lightweight placeholder for app-bridge redirects
+function RedirectTo() {
+    const { redirect } = useContext(ShopContext);
+
+    useEffect(() => {
+        if (!redirect) return;
+
+        // Build the current in-app path (keep pathname + query + hash)
+        const path = window.location.pathname + window.location.search + window.location.hash;
+
+        try {
+            // If the app is embedded and running inside Shopify admin iframe, navigate using APP action.
+            // If the app is running top-level (not embedded), let App Bridge forceRedirect handle it
+            // (createApp was configured with forceRedirect: true). Still, dispatching APP is harmless
+            // and keeps the app router in sync with the parent.
+            redirect.dispatch(Redirect.Action.APP, path);
+        } catch (err) {
+            // Log errors but don't crash the app
+            // Most common failure would be if the redirect action isn't usable yet
+            // or the action has been torn down.
+            // eslint-disable-next-line no-console
+            console.error('Shopify app-bridge redirect failed:', err);
+        }
+    }, [redirect]);
+
+    return null;
+}
 
 function App() {
-    const app = document.getElementById('app');
-    const apiKey = app.dataset.apiKey;
-    const shop = app.dataset.shop;
+    // Use the same element reference everywhere
+    const appElement = document.getElementById('app');
 
+    if (!appElement) {
+        return <div>Error: App element not found</div>;
+    }
 
-    const shopifyApp = createApp({
-        apiKey: apiKey,
-        shopOrigin: shop,
-        forceRedirect: true,
-        host: new URLSearchParams(window.location.search).get('host')
-    });
+    const { apiKey, shop, host } = appElement.dataset;
 
-    const RedirectTo = () => {
-        // Example: redirect within app if needed
-        const redirect = Redirect.create(shopifyApp);
-        // redirect.dispatch(Redirect.Action.ADMIN_PATH, `/apps/your-app`);
-        return null;
-    };
+    if (!apiKey || !shop || !host) {
+        return (
+            <div style={{ padding: '20px', color: 'red' }}>
+                Error: Missing required Shopify app data. Please check your configuration.
+            </div>
+        );
+    }
 
     return (
-        <AppProvider i18n={'en'}>
-            <Page title="Shopify Embedded App">
-                <Card sectioned>
+        <ShopContextProvider apiKey={apiKey} shop={shop} host={host}>
+            <AppProvider i18n={enTranslations}>
+                <Router>
 
-                        <p>Welcome — shop: {shop}</p>
-                        <p>This app is embedded in Shopify and uses App Bridge + Polaris.</p>
-
-                </Card>
-                <RedirectTo />
-            </Page>
-        </AppProvider>
+                    <Routes>
+                        <Route path="/app" element={<Dashboard />} />
+                        <Route path="/app/products" element={<Products />} />
+                        <Route path="*" element={<div>Page not found</div>} />
+                    </Routes>
+                    <Navbar />
+                    <RedirectTo />
+                </Router>
+            </AppProvider>
+        </ShopContextProvider>
     );
 }
 
-const app = ReactDOM.createRoot(document.getElementById('app'));
-app.render(<App />);
+// Render the app
+const rootElement = document.getElementById('app');
+if (rootElement) {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(<App />);
+} else {
+    console.error('Root element not found');
+}
