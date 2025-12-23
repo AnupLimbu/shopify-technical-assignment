@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ShopifyAuthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,4 +16,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('app');
-});
+})->name('app');
+
+// Shopify OAuth entry points
+Route::get('/shopify/install', [ShopifyAuthController::class, 'install'])->name('shopify.install');
+Route::get('/shopify/callback', [ShopifyAuthController::class, 'callback'])->name('shopify.callback');

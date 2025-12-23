@@ -13,7 +13,15 @@ export default defineConfig({
         // React plugin
         react(),
     ],
-    server: {
-        port: 3001, // Change port to 3001 or any port you prefer
+    define: {
+        'process.env.NODE_ENV': '"development"',  // Forces development mode
     },
+    server: {
+        cors: {
+            https: true,
+            origin: '*', // Allow all origins
+            // OR specify your ngrok domain:
+            // origin: 'https://premilitary-kristie-bioecologic.ngrok-free.dev'
+        }
+    }
 });
