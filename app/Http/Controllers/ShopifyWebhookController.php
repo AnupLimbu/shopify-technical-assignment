@@ -4,9 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Shop;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
+
 
 class ShopifyWebhookController extends Controller
 {
@@ -36,7 +37,7 @@ class ShopifyWebhookController extends Controller
             return response('Bad payload', 400);
         }
 
-        // Map identifiers: try to use shop_id FK if your products table uses it, otherwise use shop_domain
+
         $shop = Shop::where('shop_domain', $shopDomain)->first();
 
 
@@ -47,7 +48,7 @@ class ShopifyWebhookController extends Controller
             return response('Missing product id', 400);
         }
 
-        $where = [['shop_id' => $shop->id], ['shopify_id' => $shopifyId]];
+        $where = ['shop_id' => $shop->id, 'shopify_id' => $shopifyId];
 
         try {
             if (in_array($topic, ['products/create', 'products/update'])) {
@@ -55,7 +56,7 @@ class ShopifyWebhookController extends Controller
                 $attrs = [
                     'title' => $payload['title'] ?? ($payload['product_title'] ?? ''),
                     'body_html' => $payload['body_html'] ?? null,
-                    'status' => $payload['status'] ?? 'active',
+                    'status' => $payload['status'] ?? 'ACTIVE',
                     'published_at' => isset($payload['published_at']) && $payload['published_at'] ? Carbon::parse($payload['published_at']) : null,
                     'synced_at' => now(),
                 ];

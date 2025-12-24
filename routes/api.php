@@ -25,4 +25,4 @@ Route::post('/sync', [SyncController::class, 'sync']);
 
 
 
-Route::post('shopify/webhooks/products', [ShopifyWebhookController::class, 'products'])->name('shopify.webhooks.products');
+Route::post('webhooks/shopify/products', [ShopifyWebhookController::class, 'products'])->name('webhooks.shopify.products');

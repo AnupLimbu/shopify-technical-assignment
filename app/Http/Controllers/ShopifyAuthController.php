@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Shop;
 use App\Services\ShopifyService;
+use App\Services\ShopifyWebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
@@ -98,15 +99,10 @@ class ShopifyAuthController extends Controller
         );
 
         try {
-            $appUrl = config('app.url') ?: env('APP_URL');
+            $webhookService = new ShopifyWebhookService();
+            $webhookService->registerWebhooks($shopModel);
 
-            $webhookAddress = rtrim($appUrl, '/') . '/api/shopify/webhooks/products';
-//            $a=$this->shopify->registerWebhook($shop, $tokenResponse['access_token'], 'products/create', $webhookAddress);
-            $b=$this->shopify->registerWebhook($shop, $tokenResponse['access_token'], 'products/update', $webhookAddress);
-//            $c=$this->shopify->registerWebhook($shop, $tokenResponse['access_token'], 'products/delete', $webhookAddress);
-            dd($b);
         } catch (\Throwable $e) {
-            dd($e);
             Log::warning('Failed to register webhooks for shop ' . $shop, ['error' => $e->getMessage()]);
         }
         // Redirect merchant into embedded app with shop param

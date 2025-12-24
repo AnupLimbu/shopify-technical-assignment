@@ -16,11 +16,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get('/', function () {
-    return view('app'); // the blade that contains the <div id="app" ...> and bootstraps React
+    return view('app');
 })->name('app');
 
 Route::get('/app/{any?}', function () {
-    return view('app'); // the blade that contains the <div id="app" ...> and bootstraps React
+    return view('app');
 })->where('any', '.*');
 
 // Shopify OAuth entry points
